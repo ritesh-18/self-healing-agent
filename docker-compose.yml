@@ -1,0 +1,105 @@
+# med.ai local stack
+#
+# Everything runs in containers so a reviewer can bring the whole system up
+# with one command and get the same result we did. `docker compose up` gives
+# you Postgres with pgvector, an S3-compatible object store for traces, the
+# API, and the dashboard.
+#
+# The CLI still works against the same database, so nothing here replaces
+# `npm run eval` - it just gives it somewhere durable to write.
+
+services:
+  db:
+    image: pgvector/pgvector:pg17
+    container_name: medai-db
+    environment:
+      POSTGRES_USER: medai
+      POSTGRES_PASSWORD: medai
+      POSTGRES_DB: medai
+    ports:
+      - "5434:5432"
+    volumes:
+      - medai-pgdata:/var/lib/postgresql/data
+      # Migrations run in filename order on first boot of an empty volume.
+      - ./db/migrations:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U medai -d medai"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  # S3-compatible object store for traces.
+  #
+  # Traces are large and append-only: a full run's spans, prompts and raw
+  # provider responses are far bigger than the summary rows the dashboard
+  # queries. Postgres holds the index; the payloads live here. Using the real
+  # S3 API locally means the same code path works against AWS in production.
+  # LocalStack rather than MinIO: the MinIO images now require registry
+  # authentication, and a reviewer should be able to bring this up with no
+  # docker login. LocalStack speaks the same S3 API, so the exporter code is
+  # unchanged and still runs against real AWS in production.
+  s3:
+    image: localstack/localstack:latest
+    container_name: medai-s3
+    environment:
+      SERVICES: s3
+      DEBUG: "0"
+    ports:
+      - "4566:4566"
+    volumes:
+      - medai-s3data:/var/lib/localstack
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:4566/_localstack/health || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: api
+    container_name: medai-api
+    depends_on:
+      db:
+        condition: service_healthy
+      s3:
+        condition: service_started
+    environment:
+      DATABASE_URL: postgres://medai:medai@db:5432/medai
+      S3_ENDPOINT: http://s3:4566
+      S3_BUCKET: medai-traces
+      S3_ACCESS_KEY: medai
+      S3_SECRET_KEY: medai12345
+      PORT: "4000"
+      # The SDK looks here rather than at a root-owned path.
+      AWS_SHARED_CREDENTIALS_FILE: /home/app/.aws/credentials
+      AWS_CONFIG_FILE: /home/app/.aws/config
+      HOME: /home/app
+    env_file:
+      # Model credentials stay in .env and are never baked into an image.
+      - .env
+    ports:
+      - "4000:4000"
+    volumes:
+      # Bedrock reads the AWS credential chain. Mounted at the app user's
+      # home, not /root: the container runs unprivileged, so /root is
+      # unreadable and the SDK falls through to "no credentials".
+      - ${USERPROFILE:-${HOME}}/.aws:/home/app/.aws:ro
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: web
+    container_name: medai-web
+    depends_on:
+      - api
+    environment:
+      VITE_API_URL: http://localhost:4000
+    ports:
+      - "5173:80"
+
+volumes:
+  medai-pgdata:
+  medai-s3data:

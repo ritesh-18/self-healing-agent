@@ -1,0 +1,192 @@
+/* A deliberately plain, dense interface. This is an operator tool: the job is
+   to make a failing scenario and its evidence legible fast, not to look like
+   a marketing page. */
+:root {
+  --bg: #0f1115;
+  --panel: #171a21;
+  --panel-2: #1d212a;
+  --line: #262b36;
+  --text: #e6e8ec;
+  --muted: #949aa6;
+  --green: #3fb950;
+  --red: #f85149;
+  --amber: #d29922;
+  --blue: #58a6ff;
+  --cyan: #39c5cf;
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 14px;
+}
+
+a { color: var(--blue); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+.layout { display: grid; grid-template-columns: 210px 1fr; min-height: 100vh; }
+
+.sidebar {
+  background: var(--panel);
+  border-right: 1px solid var(--line);
+  padding: 18px 0;
+}
+.brand { padding: 0 18px 18px; font-weight: 700; font-size: 16px; }
+.brand small { display: block; color: var(--muted); font-weight: 400; font-size: 11px; }
+.nav a {
+  display: block;
+  padding: 9px 18px;
+  color: var(--muted);
+  border-left: 2px solid transparent;
+}
+.nav a.active { color: var(--text); background: var(--panel-2); border-left-color: var(--blue); }
+
+.main { padding: 22px 26px; max-width: 1400px; }
+h1 { font-size: 20px; margin: 0 0 4px; }
+h2 { font-size: 15px; margin: 24px 0 10px; }
+.sub { color: var(--muted); margin: 0 0 18px; font-size: 13px; }
+
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; }
+.card {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 14px 16px;
+}
+.card .label { color: var(--muted); font-size: 12px; }
+.card .value { font-size: 26px; font-weight: 600; margin-top: 4px; }
+
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); }
+th { color: var(--muted); font-weight: 500; font-size: 12px; }
+tbody tr:hover { background: var(--panel-2); }
+
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.pill {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+}
+.pill.pass { background: rgba(63,185,80,.15); color: var(--green); }
+.pill.fail { background: rgba(248,81,73,.15); color: var(--red); }
+.pill.warn { background: rgba(210,153,34,.15); color: var(--amber); }
+.pill.info { background: rgba(88,166,255,.15); color: var(--blue); }
+.pill.muted { background: var(--panel-2); color: var(--muted); }
+.pill.behavioural { background: rgba(210,153,34,.15); color: var(--amber); }
+.pill.structural { background: rgba(57,197,207,.15); color: var(--cyan); }
+.pill.harness { background: var(--panel-2); color: var(--muted); }
+
+button {
+  background: var(--panel-2);
+  color: var(--text);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 7px 13px;
+  font-size: 13px;
+  cursor: pointer;
+}
+button:hover:not(:disabled) { border-color: var(--blue); }
+button:disabled { opacity: .45; cursor: not-allowed; }
+button.primary { background: #1f6feb; border-color: #1f6feb; }
+button.danger { background: rgba(248,81,73,.15); border-color: var(--red); color: var(--red); }
+button.ok { background: rgba(63,185,80,.15); border-color: var(--green); color: var(--green); }
+
+input, textarea, select {
+  width: 100%;
+  background: var(--bg);
+  color: var(--text);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 8px 10px;
+  font-size: 13px;
+  font-family: inherit;
+}
+textarea { min-height: 72px; resize: vertical; }
+label { display: block; margin: 12px 0 5px; color: var(--muted); font-size: 12px; }
+
+pre, code, .mono {
+  font-family: ui-monospace, "Cascadia Code", Consolas, monospace;
+  font-size: 12px;
+}
+pre {
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 12px;
+  overflow: auto;
+  max-height: 460px;
+  white-space: pre-wrap;
+  line-height: 1.55;
+}
+
+.row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.spread { display: flex; justify-content: space-between; align-items: center; }
+.muted { color: var(--muted); }
+.bar { height: 6px; background: var(--panel-2); border-radius: 3px; overflow: hidden; }
+.bar > div { height: 100%; background: var(--green); }
+.err {
+  background: rgba(248,81,73,.1);
+  border: 1px solid var(--red);
+  color: var(--red);
+  padding: 10px 12px;
+  border-radius: 6px;
+  margin-bottom: 14px;
+}
+.banner {
+  background: rgba(88,166,255,.1);
+  border: 1px solid var(--blue);
+  padding: 9px 12px;
+  border-radius: 6px;
+  margin-bottom: 14px;
+}
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+@media (max-width: 1000px) { .grid2 { grid-template-columns: 1fr; } }
+
+/* Conversation view ------------------------------------------------------ */
+.convo { display: flex; flex-direction: column; gap: 10px; max-width: 900px; }
+
+.bubble {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 10px 13px;
+  line-height: 1.5;
+}
+.bubble .who {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  margin-bottom: 4px;
+}
+/* The caller is indented and the agent is not, so the direction of the
+   conversation is readable at a glance without reading any words. */
+.bubble.patient {
+  background: var(--panel-2);
+  margin-right: 90px;
+}
+.bubble.patient .who { color: var(--blue); }
+.bubble.agent {
+  background: var(--panel);
+  margin-left: 90px;
+  border-color: #2d3444;
+}
+.bubble.agent .who { color: var(--green); }
+
+.tool-line {
+  font-size: 12px;
+  padding: 5px 13px;
+  margin-left: 90px;
+  border-left: 2px solid var(--line);
+}
